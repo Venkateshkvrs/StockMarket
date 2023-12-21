@@ -1,0 +1,26 @@
+TickerKey,TickerSymbol,TickerSector
+TK1,TCS,Information Technology
+TK2,INFY,Information Technology
+TK3,WIPRO,Information Technology
+TK4,TECHM,Information Technology
+TK5,HCLTECH,Information Technology
+TK6,HDFCBANK,Banking and Financial Services
+TK7,ICICIBANK,Banking and Financial Services
+TK8,AXISBANK,Banking and Financial Services
+TK9,SBI,Banking and Financial Services
+TK10,KOTAKBANK,Banking and Financial Services
+TK11,M&M,Automobile
+TK12,MARUTI,Automobile
+TK13,TATAMOTORS,Automobile
+TK14,HEROMOTOCO,Automobile
+TK15,BAJAJ-AUTO,Automobile
+TK16,SUNPHARMA,Pharmaceuticals
+TK17,DRREDDY,Pharmaceuticals
+TK18,CIPLA,Pharmaceuticals
+TK19,LUPIN,Pharmaceuticals
+TK20,DIVISLAB,Pharmaceuticals
+TK21,RELIANCE,Energy
+TK22,ONGC,Energy
+TK23,COALINDIA,Energy
+TK24,BPCL,Energy
+TK25,GAIL,Energy

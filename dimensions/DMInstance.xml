@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SDatabase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <StreamProperties>
+    <StreamHub>
+      <DataSources>
+        <DataSource DS_id="DS-01">
+          <WindowStorageProperties>
+            <size units="rows">1000</size>
+            <time units="seconds">30</time>
+            <velocity units="rows">500</velocity>
+            <type>sliding</type>
+            <origin>latest</origin>
+          </WindowStorageProperties>
+          <Fileproperties>
+            <FilePath>stream</FilePath>
+            <FileType>.csv</FileType>
+            <FileMode>read</FileMode>
+            <FileAppend>true</FileAppend>
+          </Fileproperties>
+          <FileContents>
+            <DimensionVariableKeys>
+              <DimensionVariableKey type="VARCHAR(255)" DimensionTable="time_dimension">TimeKey</DimensionVariableKey>
+              <DimensionVariableKey type="VARCHAR(255)" DimensionTable="ticker_dimension">TickerKey</DimensionVariableKey>
+              <DimensionVariableKey type="VARCHAR(255)" DimensionTable="action_dimension">ActionKey</DimensionVariableKey>
+            </DimensionVariableKeys>
+            <FactVariables>
+              <FactVariable type="DECIMAL" property="NOT NULL">Quantity</FactVariable>
+              <FactVariable type="DECIMAL" property="NOT NULL">Price</FactVariable>
+            </FactVariables>
+          </FileContents>
+        </DataSource>
+      </DataSources>
+    </StreamHub>
+    <StreamProcessor>
+      <Storageproperties>
+        <Summary>
+          <SummaryProperties>
+            <SummaryItem type="VARCHAR(255)" property="PRIMARY KEY">Query_Id</SummaryItem>
+            <SummaryItem type="VARCHAR(255)" property="NOT NULL">Type</SummaryItem>
+            <SummaryItem type="VARCHAR(255)" property="NOT NULL">Query</SummaryItem>
+            <SummaryItem type="VARCHAR(255)" property="NOT NULL">Result_Table</SummaryItem>
+          </SummaryProperties>
+        </Summary>
+        <Log>
+          <LogItem type="INTEGER" property="PRIMARY KEY AUTO_INCREMENT">Log_Id</LogItem>
+          <LogItem type="DATETIME" property="NOT NULL">TimeStamp</LogItem>
+          <LogItem type="INTEGER" property="NOT NULL">Query_Id</LogItem>
+          <LogItem type="VARCHAR(255)" property="NOT NULL">Fact_Variable</LogItem>
+          <LogItem type="VARCHAR(255)" property="NOT NULL">Aggregate_Function</LogItem>
+          <LogItem type="DECIMAL(15,5)" property="NOT NULL">Window_Result</LogItem>
+        </Log>
+      </Storageproperties>
+
+      <QueryRepositories>
+        <QueryRepo type="aggregate">
+<!--          Performs all these aggregate operations on those fact variables-->
+          <AggregateFunctions>
+            <AggregateFunction>SUM</AggregateFunction>
+            <AggregateFunction>COUNT</AggregateFunction>
+            <AggregateFunction>AVG</AggregateFunction>
+            <AggregateFunction>MIN</AggregateFunction>
+            <AggregateFunction>MAX</AggregateFunction>
+          </AggregateFunctions>
+          <Query id="a1">
+            <FactVariable>Quantity</FactVariable>
+            <QueryLabel>Aggregate Analytics of Quantity</QueryLabel>
+          </Query>
+          <Query id="a2">
+            <FactVariable>Price</FactVariable>
+            <QueryLabel>Aggregate Analytics of Price</QueryLabel>
+          </Query>
+        </QueryRepo>
+        <QueryRepo type="generic">
+          <Query id="q1">
+            <AggregateFunction>SUM</AggregateFunction>
+            <FactVariable>Quantity</FactVariable>
+            <QueryScript>select SUM(Quantity) as result  from MergeView where TickerSymbol='SBI'</QueryScript>
+            <QueryLabel>Total Trade Quantity of SBI</QueryLabel>
+          </Query>
+          <Query id="q2">
+            <AggregateFunction>AVG</AggregateFunction>
+            <FactVariable>Price</FactVariable>
+            <QueryScript>select AVG(Price) as result  from MergeView where TickerSymbol='SBI'</QueryScript>
+            <QueryLabel>Average Trade Price of SBI</QueryLabel>
+          </Query>
+          <Query id="q3">
+            <AggregateFunction>AVG</AggregateFunction>
+            <FactVariable>Price</FactVariable>
+            <QueryScript>select AVG(Price) as result  from MergeView where TickerSector='Pharmaceuticals'</QueryScript>
+            <QueryLabel>Average Trade Price of Pharmaceuticals Sector</QueryLabel>
+          </Query>
+          <Query id="q4">
+            <AggregateFunction>SUM</AggregateFunction>
+            <FactVariable>Quantity</FactVariable>
+            <QueryScript>select TradeAction, SUM(Quantity) as result  from MergeView where TickerSymbol='SBI' group by TradeAction</QueryScript>
+            <QueryLabel>Total No. of Trade Actions (Buys and Sells) of SBI</QueryLabel>
+          </Query>
+        </QueryRepo>
+      </QueryRepositories>
+
+    </StreamProcessor>
+  </StreamProperties>
+  <DWHProperties>
+    <DimensionalProperties>
+      <CuboidProperties>
+        <CuboidType>Iceberg Cuboid</CuboidType>
+        <AggregateFunctions>
+          <AggregateFunction>SUM</AggregateFunction>
+          <AggregateFunction>COUNT</AggregateFunction>
+          <AggregateFunction>AVG</AggregateFunction>
+          <AggregateFunction>MIN</AggregateFunction>
+          <AggregateFunction>MAX</AggregateFunction>
+        </AggregateFunctions>
+        <Dimensions>
+          <Dimension>TickerSymbol</Dimension>
+          <Dimension>WeekDay</Dimension>
+          <Dimension>TickerSector</Dimension>
+          <Dimension>TradeAction</Dimension>
+        </Dimensions>
+        <FactVariables>
+          <FactVariable>Quantity</FactVariable>
+          <FactVariable>Price</FactVariable>
+        </FactVariables>
+        <ComputeType>Auto-Compute</ComputeType>
+        <QueryProcessing>Auto-Process</QueryProcessing>
+      </CuboidProperties>
+    </DimensionalProperties>
+    <DimensionTables>
+      <DimensionTable name="time_dimension">
+        <DimensionVariable type="VARCHAR(255)" property="PRIMARY KEY">TimeKey</DimensionVariable>
+        <DimensionVariable type="VARCHAR(255)" property="NOT NULL">Timestamp</DimensionVariable>
+        <DimensionVariable type="VARCHAR(255)" property="NOT NULL">Session</DimensionVariable>
+        <DimensionVariable type="INT" property="NOT NULL">WeekDay</DimensionVariable>
+      </DimensionTable>
+      <DimensionTable name="ticker_dimension">
+        <DimensionVariable type="VARCHAR(255)" property="PRIMARY KEY">TickerKey</DimensionVariable>
+        <DimensionVariable type="VARCHAR(255)" property="NOT NULL">TickerSymbol</DimensionVariable>
+        <DimensionVariable type="VARCHAR(255)" property="NOT NULL">TickerSector</DimensionVariable>
+      </DimensionTable>
+      <DimensionTable name="action_dimension">
+        <DimensionVariable type="VARCHAR(255)" property="PRIMARY KEY">ActionKey</DimensionVariable>
+        <DimensionVariable type="VARCHAR(255)" property="NOT NULL">TradeAction</DimensionVariable>
+      </DimensionTable>
+    </DimensionTables>
+    <FactVariables>
+      <FactVariable>Quantity</FactVariable>
+      <FactVariable>Price</FactVariable>
+    </FactVariables>
+  </DWHProperties>
+</SDatabase>
